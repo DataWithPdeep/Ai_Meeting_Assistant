@@ -15,13 +15,12 @@ SARVAM_API_KEY = os.getenv("SARVAM_API_KEY")
 SARVAM_STT_TRANSLATE_URL = "https://api.sarvam.ai/speech-to-text-translate"
 SARVAM_MODEL = os.getenv("SARVAM_STT_MODEL", "saaras:v2.5")
 
-client = OpenAI()  # OPENAI_API_KEY env se lega
-
 # =========================================================
 # OPENAI WHISPER API TRANSCRIPTION
 # =========================================================
 
 def transcribe_chunk_whisper(chunk_path: str) -> str:
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))  # ✅ Lazy load
     print(f"→ OpenAI Whisper API: {os.path.basename(chunk_path)}")
     with open(chunk_path, "rb") as audio_file:
         result = client.audio.transcriptions.create(
@@ -31,7 +30,7 @@ def transcribe_chunk_whisper(chunk_path: str) -> str:
     return result.text
 
 # =========================================================
-# SARVAM API (Hinglish) — same as before
+# SARVAM API (Hinglish)
 # =========================================================
 
 def _send_to_sarvam(piece_path: str) -> str:
@@ -94,7 +93,7 @@ def transcribe_chunk_sarvam(chunk_path: str) -> str:
     return full_text.strip()
 
 # =========================================================
-# ROUTER + TRANSCRIBE ALL — same as before
+# ROUTER + TRANSCRIBE ALL
 # =========================================================
 
 def transcribe_chunk(chunk_path: str, language: str = "english") -> str:
