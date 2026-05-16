@@ -7,7 +7,6 @@ import yt_dlp
 DOWNLOAD_DIR = "downloads"
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
-# ✅ FFmpeg path — imageio_ffmpeg se
 FFMPEG_EXE = imageio_ffmpeg.get_ffmpeg_exe()
 FFMPEG_DIR = os.path.dirname(FFMPEG_EXE)
 
@@ -25,6 +24,22 @@ def download_youtube_audio(url: str) -> str:
         ],
         "ffmpeg_location": FFMPEG_EXE,
         "quiet": False,
+        # ✅ 403 fix — browser jaisa request bhejo
+        "http_headers": {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Referer": "https://www.youtube.com/",
+        },
+        # ✅ Age-restricted videos ke liye
+        "extractor_args": {
+            "youtube": {
+                "player_client": ["web", "android"],
+            }
+        },
+        # ✅ Retry logic
+        "retries": 5,
+        "fragment_retries": 5,
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -55,19 +70,12 @@ def convert_to_wav(input_path: str) -> str:
 
 def chunk_audio(wav_path: str, chunk_minutes: int = 10) -> list:
 
-    # ✅ ffprobe — ffmpeg ke saath aata hai system install mein
-    # imageio_ffmpeg mein sirf ffmpeg hota hai, ffprobe nahi
-    # isliye ffmpeg se hi duration nikalenge
     result = subprocess.run(
-        [
-            FFMPEG_EXE,
-            "-i", wav_path,
-        ],
+        [FFMPEG_EXE, "-i", wav_path],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE
     )
 
-    # Duration ffmpeg stderr mein hota hai
     stderr = result.stderr.decode()
     duration = None
 
