@@ -2,7 +2,7 @@ import os
 import subprocess
 import requests
 import imageio_ffmpeg
-from openai import OpenAI
+from groq import Groq
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -16,15 +16,15 @@ SARVAM_STT_TRANSLATE_URL = "https://api.sarvam.ai/speech-to-text-translate"
 SARVAM_MODEL = os.getenv("SARVAM_STT_MODEL", "saaras:v2.5")
 
 # =========================================================
-# OPENAI WHISPER API TRANSCRIPTION
+# GROQ WHISPER TRANSCRIPTION (FREE)
 # =========================================================
 
 def transcribe_chunk_whisper(chunk_path: str) -> str:
-    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))  # ✅ Lazy load
-    print(f"→ OpenAI Whisper API: {os.path.basename(chunk_path)}")
+    client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+    print(f"→ Groq Whisper: {os.path.basename(chunk_path)}")
     with open(chunk_path, "rb") as audio_file:
         result = client.audio.transcriptions.create(
-            model="whisper-1",
+            model="whisper-large-v3",
             file=audio_file
         )
     return result.text
@@ -103,7 +103,7 @@ def transcribe_chunk(chunk_path: str, language: str = "english") -> str:
 
 def transcribe_all(chunks: list, language: str = "english") -> str:
     full_transcript = ""
-    engine = "Sarvam AI" if language.lower() == "hinglish" else "OpenAI Whisper API"
+    engine = "Sarvam AI" if language.lower() == "hinglish" else "Groq Whisper (Free)"
     print(f"✅ Using {engine}")
     for i, chunk in enumerate(chunks):
         print(f"Transcribing chunk {i+1}/{len(chunks)}...")
